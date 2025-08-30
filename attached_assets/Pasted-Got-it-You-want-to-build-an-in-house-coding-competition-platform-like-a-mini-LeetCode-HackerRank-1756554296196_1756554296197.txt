@@ -1,0 +1,159 @@
+Got it 👍 You want to build an in-house coding competition platform (like a mini LeetCode/HackerRank) with these features:
+
+Authentication (login/signup)
+
+Event creation by organizers
+
+Participants join events & solve DSA questions
+
+Leaderboard system
+
+Database connectivity
+
+AI backend for question generation + answer validation
+
+Deployable on Replit
+
+Let’s break it into workflow + prompts you can use while building on Replit.
+
+🚀 Workflow for Your Project
+1. Tech Stack
+
+Frontend: React (for UI), Tailwind/Bootstrap for styling
+
+Backend: Flask / FastAPI (Python, easier to integrate with AI)
+
+Database: SQLite (for Replit, easy to set up), can upgrade to PostgreSQL later
+
+AI Integration: OpenAI API (or HuggingFace models) for:
+
+Generating new coding questions
+
+Evaluating code submissions (test case + AI reasoning)
+
+2. Authentication
+
+JWT-based authentication (Flask-JWT or FastAPI-JWT)
+
+User roles: Organizer vs Participant
+
+Tables:
+
+users (id, name, email, password_hash, role)
+
+3. Event Management
+
+Organizer creates events → Each event has multiple questions
+
+Participants join via event code/link
+
+Tables:
+
+events (id, name, description, created_by, start_time, end_time)
+
+event_participants (event_id, user_id)
+
+questions (id, event_id, question_text, difficulty, test_cases JSON)
+
+4. DSA Question Handling
+
+Organizer clicks "Generate Question" → AI generates DSA question with constraints + test cases
+
+Stored in questions table
+
+AI can also explain solutions for review
+
+5. Answer Submission
+
+User writes code in editor (Monaco Editor or CodeMirror)
+
+Backend runs code in a sandbox (Replit’s subprocess or API)
+
+Compare output with test cases
+
+AI can also provide hints/feedback
+
+Tables:
+
+submissions (id, user_id, question_id, code, status, score, submitted_at)
+
+6. Leaderboard
+
+Aggregate scores for each participant in an event
+
+Sorted by score & submission time
+
+7. Database Schema (Simplified)
+users (id, name, email, password_hash, role)
+events (id, name, description, created_by, start_time, end_time)
+event_participants (event_id, user_id)
+questions (id, event_id, question_text, difficulty, test_cases)
+submissions (id, user_id, question_id, code, status, score, submitted_at)
+
+🛠 Prompt for Replit (to guide AI coding)
+
+You can use this step-by-step prompt in Replit’s AI (Ghostwriter) or paste into ChatGPT when coding:
+
+Prompt 1: Project Setup
+Create a full-stack coding platform with:
+- Frontend: React + Tailwind
+- Backend: Flask (Python)
+- Database: SQLite
+- Authentication: JWT
+- Role-based login (Organizer, Participant)
+Setup initial project structure in Replit with separate frontend and backend folders.
+
+Prompt 2: Authentication
+Implement authentication in Flask backend:
+- Signup, Login with JWT
+- Store users in SQLite with hashed passwords
+- Role field: organizer or participant
+- Protect routes with JWT
+Provide API endpoints: /signup, /login, /me
+
+Prompt 3: Event Creation & Join
+Implement event management:
+- Organizer can create event with name, description, start_time, end_time
+- Store events in SQLite
+- Participants can join event by event_id
+API endpoints: /events/create (organizer only), /events/join, /events/list
+
+Prompt 4: AI Question Generation
+Integrate OpenAI API in Flask backend:
+- Endpoint: /questions/generate
+- Input: difficulty level, topic
+- Output: question text, constraints, and 3-5 test cases
+Save generated question in database under the event.
+
+Prompt 5: Answer Submission & Evaluation
+Implement code submission system:
+- Endpoint: /submit
+- Input: question_id, user_code (Python)
+- Run code safely in subprocess with test cases from DB
+- Compare outputs
+- Return status: Accepted / Wrong Answer / Runtime Error
+- Store submission in DB
+
+Prompt 6: Leaderboard
+Create leaderboard API:
+- For each event, fetch participants and their scores
+- Score = number of correct submissions
+- Rank by score and time
+API endpoint: /leaderboard/<event_id>
+
+Prompt 7: Frontend
+Build frontend in React with Tailwind:
+- Auth pages: Signup, Login
+- Dashboard: Organizer (Create event, generate questions, view leaderboard)
+- Dashboard: Participant (Join event, attempt questions, view leaderboard)
+- Code editor for answering (use Monaco Editor)
+- Connect to Flask APIs
+
+Prompt 8: AI Feedback
+Enhance submission API with AI:
+- If answer is wrong, send code + question + test case results to OpenAI
+- Ask AI to provide hint or explain bug
+- Return hint in response
+
+
+👉 This will give you a working mini online coding competition platform on Replit with AI-assisted question generation + feedback.
