@@ -12,6 +12,8 @@ export default function Events() {
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const { toast } = useToast();
 
+  console.log("Events component rendered, showCreateEvent:", showCreateEvent);
+
   const { data: events, isLoading } = useQuery<Event[]>({
     queryKey: ["/api/events"],
   });
@@ -62,7 +64,10 @@ export default function Events() {
           <h2 className="text-2xl font-semibold text-foreground">Events</h2>
           <p className="text-muted-foreground">Create and manage coding competitions</p>
         </div>
-        <Button onClick={() => setShowCreateEvent(true)} data-testid="button-create-event">
+        <Button onClick={() => {
+          console.log("Create Event button clicked");
+          setShowCreateEvent(true);
+        }} data-testid="button-create-event">
           <i className="fas fa-plus mr-2"></i>
           Create Event
         </Button>

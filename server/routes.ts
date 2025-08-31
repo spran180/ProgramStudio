@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { authenticateToken, requireRole, hashPassword, comparePassword, generateToken, type AuthRequest } from "./services/auth";
-import { generateQuestion, getCodeFeedback } from "./services/ai";
-import { executeCode } from "./services/codeExecution";
+import { storage } from "./storage.js";
+import { authenticateToken, requireRole, hashPassword, comparePassword, generateToken, type AuthRequest } from "./services/auth.js";
+import { generateQuestion, getCodeFeedback } from "./services/ai.js";
+import { executeCode } from "./services/codeExecution.js";
 import { loginSchema, signupSchema, insertEventSchema, insertQuestionSchema, insertSubmissionSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -113,7 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Event routes
-  app.post("/api/events", authenticateToken, requireRole("organizer"), async (req: AuthRequest, res) => {
+  app.post("/api/events", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const validatedData = insertEventSchema.parse(req.body);
       

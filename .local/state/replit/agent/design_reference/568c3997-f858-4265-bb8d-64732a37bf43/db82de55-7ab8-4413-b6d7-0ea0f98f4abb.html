@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeCompete - In-House Coding Competition Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                },
+                fontFamily: {
+                    sans: ["Roboto", "system-ui", "sans-serif"],
+                    mono: ["JetBrains Mono", "Consolas", "Monaco", "monospace"],
+                }
+            },
+        }
+    };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --radius: 8px;
+            --background: hsl(210 40% 98%);
+            --foreground: hsl(210 20% 10%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(210 20% 10%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(210 20% 10%);
+            --primary: hsl(217 91% 60%);
+            --primary-foreground: hsl(0 0% 100%);
+            --secondary: hsl(210 40% 94%);
+            --secondary-foreground: hsl(210 30% 8%);
+            --muted: hsl(210 40% 96%);
+            --muted-foreground: hsl(210 25% 40%);
+            --accent: hsl(210 40% 94%);
+            --accent-foreground: hsl(210 30% 8%);
+            --destructive: hsl(0 84% 60%);
+            --destructive-foreground: hsl(0 0% 100%);
+            --border: hsl(210 40% 85%);
+            --input: hsl(210 40% 92%);
+            --ring: hsl(217 91% 60%);
+        }
+
+        .dark {
+            --background: hsl(210 20% 6%);
+            --foreground: hsl(210 20% 95%);
+            --card: hsl(210 20% 8%);
+            --card-foreground: hsl(210 20% 95%);
+            --popover: hsl(210 20% 8%);
+            --popover-foreground: hsl(210 20% 95%);
+            --primary: hsl(217 91% 65%);
+            --primary-foreground: hsl(210 20% 6%);
+            --secondary: hsl(210 20% 12%);
+            --secondary-foreground: hsl(210 20% 90%);
+            --muted: hsl(210 20% 10%);
+            --muted-foreground: hsl(210 25% 60%);
+            --accent: hsl(210 20% 12%);
+            --accent-foreground: hsl(210 20% 90%);
+            --destructive: hsl(0 84% 65%);
+            --destructive-foreground: hsl(210 20% 6%);
+            --border: hsl(210 20% 20%);
+            --input: hsl(210 20% 15%);
+            --ring: hsl(217 91% 65%);
+        }
+
+        .sidebar-active {
+            transform: translateX(0);
+        }
+
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                z-index: 50;
+            }
+        }
+
+        .code-editor {
+            font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .submission-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .status-accepted {
+            background-color: hsl(142 76% 90%);
+            color: hsl(142 76% 20%);
+        }
+
+        .status-wrong {
+            background-color: hsl(0 84% 90%);
+            color: hsl(0 84% 20%);
+        }
+
+        .status-error {
+            background-color: hsl(38 92% 90%);
+            color: hsl(38 92% 20%);
+        }
+
+        .status-pending {
+            background-color: hsl(210 40% 90%);
+            color: hsl(210 40% 20%);
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground font-sans">
+    <!-- @COMPONENT: AuthWrapper [handles authentication state] -->
+    <div id="app">
+        <!-- Login/Signup Page -->
+        <!-- @COMPONENT: AuthPage -->
+        <div id="auth-page" class="min-h-screen flex">
+            <div class="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-20 xl:px-24">
+                <div class="mx-auto w-full max-w-sm lg:w-96">
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold text-foreground mb-2">
+                            <i class="fas fa-code text-primary mr-3"></i>CodeCompete
+                        </h1>
+                        <p class="text-muted-foreground">In-house coding competition platform</p>
+                    </div>
+
+                    <!-- Login Form -->
+                    <div id="login-form" class="space-y-6">
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-foreground mb-2">Email address</label>
+                            <input id="email" name="email" type="email" required 
+                                   class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                                   placeholder="Enter your email" data-mock="true">
+                        </div>
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-foreground mb-2">Password</label>
+                            <input id="password" name="password" type="password" required
+                                   class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                                   placeholder="Enter your password" data-mock="true">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <input id="remember-me" name="remember-me" type="checkbox" 
+                                       class="h-4 w-4 text-primary focus:ring-ring border-border rounded">
+                                <label for="remember-me" class="ml-2 block text-sm text-muted-foreground">
+                                    Remember me
+                                </label>
+                            </div>
+                            <div class="text-sm">
+                                <a href="#" class="font-medium text-primary hover:text-primary/80">
+                                    Forgot your password?
+                                </a>
+                            </div>
+                        </div>
+                        <div>
+                            <button type="submit" data-event="click:handleLogin" 
+                                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors">
+                                Sign in
+                            </button>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-sm text-muted-foreground">Don't have an account? </span>
+                            <button onclick="showSignup()" class="text-sm font-medium text-primary hover:text-primary/80">
+                                Sign up
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Signup Form (Hidden by default) -->
+                    <div id="signup-form" class="space-y-6 hidden">
+                        <div>
+                            <label for="signup-name" class="block text-sm font-medium text-foreground mb-2">Full Name</label>
+                            <input id="signup-name" name="name" type="text" required 
+                                   class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                                   placeholder="Enter your full name" data-mock="true">
+                        </div>
+                        <div>
+                            <label for="signup-email" class="block text-sm font-medium text-foreground mb-2">Email address</label>
+                            <input id="signup-email" name="email" type="email" required 
+                                   class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                                   placeholder="Enter your email" data-mock="true">
+                        </div>
+                        <div>
+                            <label for="signup-password" class="block text-sm font-medium text-foreground mb-2">Password</label>
+                            <input id="signup-password" name="password" type="password" required
+                                   class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                                   placeholder="Create a password" data-mock="true">
+                        </div>
+                        <div>
+                            <label for="role" class="block text-sm font-medium text-foreground mb-2">Role</label>
+                            <select id="role" name="role" required
+                                    class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent">
+                                <option value="">Select your role</option>
+                                <option value="participant" data-mock="true">Participant</option>
+                                <option value="organizer" data-mock="true">Organizer</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button type="submit" data-event="click:handleSignup"
+                                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors">
+                                Create Account
+                            </button>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-sm text-muted-foreground">Already have an account? </span>
+                            <button onclick="showLogin()" class="text-sm font-medium text-primary hover:text-primary/80">
+                                Sign in
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Feature Showcase -->
+            <div class="hidden lg:block relative w-0 flex-1">
+                <!-- Modern abstract geometric pattern representing code/algorithms -->
+                <div class="absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-accent overflow-hidden">
+                    <div class="absolute inset-0 bg-black/10"></div>
+                    <div class="relative h-full flex items-center justify-center p-12">
+                        <div class="text-center text-white">
+                            <div class="mb-8">
+                                <i class="fas fa-trophy text-6xl mb-4 opacity-90"></i>
+                            </div>
+                            <h2 class="text-3xl font-bold mb-4">Compete & Learn</h2>
+                            <p class="text-xl opacity-90 mb-8">Join coding competitions, solve algorithms, and climb the leaderboard</p>
+                            <div class="flex items-center justify-center space-x-8 text-sm opacity-80">
+                                <div class="flex items-center">
+                                    <i class="fas fa-brain mr-2"></i>
+                                    <span>AI-Generated Problems</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock mr-2"></i>
+                                    <span>Real-time Evaluation</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-users mr-2"></i>
+                                    <span>Team Competitions</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: AuthPage -->
+
+        <!-- Main Dashboard -->
+        <!-- @COMPONENT: Dashboard [shows different views based on user role] -->
+        <div id="dashboard" class="hidden min-h-screen bg-background">
+            <!-- Sidebar Navigation -->
+            <!-- @COMPONENT: Sidebar [navigation menu with role-based items] -->
+            <div class="sidebar fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform sidebar-hidden md:sidebar-active transition-transform duration-300 ease-in-out">
+                <div class="flex flex-col h-full">
+                    <!-- Logo -->
+                    <div class="flex items-center justify-between p-6 border-b border-border">
+                        <div class="flex items-center">
+                            <i class="fas fa-code text-primary text-xl mr-3"></i>
+                            <span class="text-xl font-bold text-foreground">CodeCompete</span>
+                        </div>
+                        <button onclick="toggleSidebar()" class="md:hidden text-muted-foreground hover:text-foreground">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <!-- User Info -->
+                    <div class="p-6 border-b border-border">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold">
+                                <span data-bind="user.name.charAt(0)" data-mock="true">J</span>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-foreground" data-bind="user.name" data-mock="true">John Doe</p>
+                                <p class="text-xs text-muted-foreground" data-bind="user.role" data-mock="true">Organizer</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Menu -->
+                    <nav class="flex-1 p-4 space-y-2">
+                        <!-- @STATE: userRole:string = "organizer" | "participant" -->
+                        
+                        <!-- Organizer Navigation -->
+                        <div id="organizer-nav" class="space-y-2">
+                            <button onclick="showView('dashboard')" 
+                                    class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium rounded-md text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+                                <i class="fas fa-chart-line mr-3 text-muted-foreground"></i>
+                                Dashboard
+                            </button>
+                            <button onclick="showView('events')" 
+                                    class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium rounded-md text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+                                <i class="fas fa-calendar-alt mr-3 text-muted-foreground"></i>
+                                Events
+                            </button>
+                            <button onclick="showView('questions')" 
+                                    class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium rounded-md text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+                                <i class="fas fa-lightbulb mr-3 text-muted-foreground"></i>
+                                Questions
+                            </button>
+                            <button onclick="showView('participants')" 
+                                    class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium rounded-md text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+                                <i class="fas fa-users mr-3 text-muted-foreground"></i>
+                                Participants
+                            </button>
+                        </div>
+
+                        <!-- Participant Navigation -->
+                        <div id="participant-nav" class="space-y-2 hidden">
+                            <button onclick="showView('my-events')" 
+                                    class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium rounded-md text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+                                <i class="fas fa-trophy mr-3 text-muted-foreground"></i>
+                                My Events
+                            </button>
+                            <button onclick="showView('join-event')" 
+                                    class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium rounded-md text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+                                <i class="fas fa-plus-circle mr-3 text-muted-foreground"></i>
+                                Join Event
+                            </button>
+                            <button onclick="showView('leaderboard')" 
+                                    class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium rounded-md text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+                                <i class="fas fa-medal mr-3 text-muted-foreground"></i>
+                                Leaderboard
+                            </button>
+                            <button onclick="showView('submissions')" 
+                                    class="nav-item w-full flex items-center px-4 py-3 text-sm font-medium rounded-md text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+                                <i class="fas fa-code-branch mr-3 text-muted-foreground"></i>
+                                My Submissions
+                            </button>
+                        </div>
+                    </nav>
+
+                    <!-- Logout -->
+                    <div class="p-4 border-t border-border">
+                        <button onclick="logout()" data-event="click:handleLogout"
+                                class="w-full flex items-center px-4 py-3 text-sm font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+                            <i class="fas fa-sign-out-alt mr-3"></i>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- @END_COMPONENT: Sidebar -->
+
+            <!-- Main Content -->
+            <div class="md:ml-64 flex flex-col min-h-screen">
+                <!-- Top Header -->
+                <header class="bg-card border-b border-border px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <button onclick="toggleSidebar()" class="md:hidden mr-4 text-muted-foreground hover:text-foreground">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div>
+                                <h1 id="page-title" class="text-2xl font-semibold text-foreground" data-mock="true">Dashboard</h1>
+                                <p id="page-subtitle" class="text-sm text-muted-foreground" data-mock="true">Manage your coding competitions</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <button class="relative text-muted-foreground hover:text-foreground">
+                                <i class="fas fa-bell text-lg"></i>
+                                <span class="absolute -top-1 -right-1 h-3 w-3 bg-destructive rounded-full"></span>
+                            </button>
+                            <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold text-sm">
+                                <span data-bind="user.name.charAt(0)" data-mock="true">J</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Content Area -->
+                <main class="flex-1 p-6">
+                    <!-- Organizer Dashboard View -->
+                    <!-- @COMPONENT: OrganizerDashboard -->
+                    <div id="dashboard-view" class="space-y-6">
+                        <!-- Stats Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="bg-card p-6 rounded-lg border border-border">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-muted-foreground">Total Events</p>
+                                        <p class="text-2xl font-bold text-foreground" data-bind="stats.totalEvents" data-mock="true">12</p>
+                                    </div>
+                                    <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-calendar-alt text-primary text-lg"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-card p-6 rounded-lg border border-border">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-muted-foreground">Active Participants</p>
+                                        <p class="text-2xl font-bold text-foreground" data-bind="stats.activeParticipants" data-mock="true">248</p>
+                                    </div>
+                                    <div class="w-12 h-12 bg-accent/50 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-users text-accent-foreground text-lg"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-card p-6 rounded-lg border border-border">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-muted-foreground">Questions Created</p>
+                                        <p class="text-2xl font-bold text-foreground" data-bind="stats.questionsCreated" data-mock="true">156</p>
+                                    </div>
+                                    <div class="w-12 h-12 bg-secondary/50 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-lightbulb text-secondary-foreground text-lg"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-card p-6 rounded-lg border border-border">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-muted-foreground">Submissions</p>
+                                        <p class="text-2xl font-bold text-foreground" data-bind="stats.totalSubmissions" data-mock="true">1,423</p>
+                                    </div>
+                                    <div class="w-12 h-12 bg-muted/50 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-code text-muted-foreground text-lg"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="bg-card p-6 rounded-lg border border-border">
+                            <h3 class="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <button onclick="showCreateEventModal()" data-event="click:showCreateEventModal"
+                                        class="flex items-center p-4 border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                                    <i class="fas fa-plus-circle text-primary mr-3 text-lg"></i>
+                                    <div class="text-left">
+                                        <p class="font-medium">Create Event</p>
+                                        <p class="text-sm text-muted-foreground">Start a new competition</p>
+                                    </div>
+                                </button>
+                                <button onclick="showGenerateQuestionModal()" data-event="click:showGenerateQuestionModal"
+                                        class="flex items-center p-4 border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                                    <i class="fas fa-robot text-primary mr-3 text-lg"></i>
+                                    <div class="text-left">
+                                        <p class="font-medium">Generate Question</p>
+                                        <p class="text-sm text-muted-foreground">AI-powered DSA problems</p>
+                                    </div>
+                                </button>
+                                <button onclick="showView('participants')" data-event="click:showParticipants"
+                                        class="flex items-center p-4 border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                                    <i class="fas fa-chart-bar text-primary mr-3 text-lg"></i>
+                                    <div class="text-left">
+                                        <p class="font-medium">View Analytics</p>
+                                        <p class="text-sm text-muted-foreground">Track performance</p>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Recent Events -->
+                        <div class="bg-card p-6 rounded-lg border border-border">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-foreground">Recent Events</h3>
+                                <button onclick="showView('events')" class="text-sm text-primary hover:text-primary/80">View all</button>
+                            </div>
+                            <div class="space-y-3">
+                                <!-- @MAP: recentEvents.map(event => ( -->
+                                <div class="flex items-center justify-between p-4 border border-border rounded-lg" data-mock="true">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mr-4">
+                                            <i class="fas fa-code text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-foreground" data-bind="event.name">Algorithm Championship 2024</p>
+                                            <p class="text-sm text-muted-foreground" data-bind="event.participants + ' participants'">24 participants</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="submission-status status-accepted">
+                                            <i class="fas fa-circle"></i>
+                                            Active
+                                        </span>
+                                        <p class="text-sm text-muted-foreground mt-1" data-bind="event.timeRemaining">2h 30m left</p>
+                                    </div>
+                                </div>
+                                <!-- @END_MAP )) -->
+                                <div class="flex items-center justify-between p-4 border border-border rounded-lg" data-mock="true">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-secondary/50 rounded-lg flex items-center justify-center mr-4">
+                                            <i class="fas fa-code text-secondary-foreground"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-foreground">Data Structures Sprint</p>
+                                            <p class="text-sm text-muted-foreground">18 participants</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="submission-status status-pending">
+                                            <i class="fas fa-circle"></i>
+                                            Scheduled
+                                        </span>
+                                        <p class="text-sm text-muted-foreground mt-1">Starts in 1 day</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: OrganizerDashboard -->
+
+                    <!-- Events Management View -->
+                    <!-- @COMPONENT: EventsView [for creating and managing events] -->
+                    <div id="events-view" class="hidden space-y-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-2xl font-semibold text-foreground">Events</h2>
+                                <p class="text-muted-foreground">Create and manage coding competitions</p>
+                            </div>
+                            <button onclick="showCreateEventModal()" data-event="click:showCreateEventModal"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 transition-colors">
+                                <i class="fas fa-plus mr-2"></i>
+                                Create Event
+                            </button>
+                        </div>
+
+                        <!-- Events List -->
+                        <div class="bg-card rounded-lg border border-border overflow-hidden">
+                            <div class="px-6 py-4 border-b border-border bg-muted/30">
+                                <h3 class="text-lg font-medium text-foreground">All Events</h3>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-muted/20">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Event</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Participants</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Questions</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-border">
+                                        <!-- @MAP: events.map(event => ( -->
+                                        <tr class="hover:bg-muted/10" data-mock="true">
+                                            <td class="px-6 py-4">
+                                                <div>
+                                                    <p class="text-sm font-medium text-foreground" data-bind="event.name">Algorithm Championship 2024</p>
+                                                    <p class="text-sm text-muted-foreground" data-bind="event.description">Advanced DSA problems for experienced developers</p>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-foreground" data-bind="event.participantCount" data-mock="true">24</td>
+                                            <td class="px-6 py-4 text-sm text-foreground" data-bind="event.questionCount" data-mock="true">8</td>
+                                            <td class="px-6 py-4">
+                                                <span class="submission-status status-accepted" data-bind="event.status">
+                                                    <i class="fas fa-circle"></i>
+                                                    Active
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center space-x-2">
+                                                    <button class="text-primary hover:text-primary/80 text-sm" data-event="click:editEvent">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="text-muted-foreground hover:text-foreground text-sm" data-event="click:viewEvent">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="text-destructive hover:text-destructive/80 text-sm" data-event="click:deleteEvent">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <!-- @END_MAP )) -->
+                                        <tr class="hover:bg-muted/10" data-mock="true">
+                                            <td class="px-6 py-4">
+                                                <div>
+                                                    <p class="text-sm font-medium text-foreground">Data Structures Sprint</p>
+                                                    <p class="text-sm text-muted-foreground">Quick-fire DS problems for beginners</p>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-foreground">18</td>
+                                            <td class="px-6 py-4 text-sm text-foreground">5</td>
+                                            <td class="px-6 py-4">
+                                                <span class="submission-status status-pending">
+                                                    <i class="fas fa-circle"></i>
+                                                    Scheduled
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center space-x-2">
+                                                    <button class="text-primary hover:text-primary/80 text-sm">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="text-muted-foreground hover:text-foreground text-sm">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="text-destructive hover:text-destructive/80 text-sm">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: EventsView -->
+
+                    <!-- Question Management View -->
+                    <!-- @COMPONENT: QuestionsView [for managing AI-generated questions] -->
+                    <div id="questions-view" class="hidden space-y-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-2xl font-semibold text-foreground">Questions</h2>
+                                <p class="text-muted-foreground">AI-generated DSA problems for your events</p>
+                            </div>
+                            <button onclick="showGenerateQuestionModal()" data-event="click:showGenerateQuestionModal"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 transition-colors">
+                                <i class="fas fa-robot mr-2"></i>
+                                Generate Question
+                            </button>
+                        </div>
+
+                        <!-- Filters -->
+                        <div class="bg-card p-4 rounded-lg border border-border">
+                            <div class="flex flex-wrap items-center gap-4">
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm font-medium text-foreground">Event:</label>
+                                    <select class="px-3 py-1 border border-border rounded-md bg-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                                        <option data-mock="true">All Events</option>
+                                        <option data-mock="true">Algorithm Championship 2024</option>
+                                        <option data-mock="true">Data Structures Sprint</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <label class="text-sm font-medium text-foreground">Difficulty:</label>
+                                    <select class="px-3 py-1 border border-border rounded-md bg-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                                        <option data-mock="true">All Levels</option>
+                                        <option data-mock="true">Easy</option>
+                                        <option data-mock="true">Medium</option>
+                                        <option data-mock="true">Hard</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Questions Grid -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- @MAP: questions.map(question => ( -->
+                            <div class="bg-card p-6 rounded-lg border border-border" data-mock="true">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex-1">
+                                        <h4 class="text-lg font-semibold text-foreground mb-2" data-bind="question.title">Two Sum Problem</h4>
+                                        <div class="flex items-center space-x-3 mb-3">
+                                            <span class="submission-status status-accepted" data-bind="question.difficulty">
+                                                <i class="fas fa-circle"></i>
+                                                Easy
+                                            </span>
+                                            <span class="text-sm text-muted-foreground" data-bind="question.event">Algorithm Championship 2024</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <button class="text-muted-foreground hover:text-foreground" data-event="click:editQuestion">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-destructive hover:text-destructive/80" data-event="click:deleteQuestion">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-muted-foreground mb-4" data-bind="question.description">
+                                    Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target...
+                                </p>
+                                <div class="flex items-center justify-between text-sm">
+                                    <div class="flex items-center space-x-4">
+                                        <span class="text-muted-foreground">
+                                            <i class="fas fa-vial mr-1"></i>
+                                            <span data-bind="question.testCases.length" data-mock="true">5</span> test cases
+                                        </span>
+                                        <span class="text-muted-foreground">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                            <span data-bind="question.submissions.accepted" data-mock="true">12</span> accepted
+                                        </span>
+                                    </div>
+                                    <button class="text-primary hover:text-primary/80" data-event="click:viewQuestion">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                            <div class="bg-card p-6 rounded-lg border border-border" data-mock="true">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex-1">
+                                        <h4 class="text-lg font-semibold text-foreground mb-2">Binary Tree Traversal</h4>
+                                        <div class="flex items-center space-x-3 mb-3">
+                                            <span class="submission-status status-error">
+                                                <i class="fas fa-circle"></i>
+                                                Medium
+                                            </span>
+                                            <span class="text-sm text-muted-foreground">Data Structures Sprint</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <button class="text-muted-foreground hover:text-foreground">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-destructive hover:text-destructive/80">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-muted-foreground mb-4">
+                                    Implement three different traversal methods (inorder, preorder, postorder) for a binary tree...
+                                </p>
+                                <div class="flex items-center justify-between text-sm">
+                                    <div class="flex items-center space-x-4">
+                                        <span class="text-muted-foreground">
+                                            <i class="fas fa-vial mr-1"></i>
+                                            7 test cases
+                                        </span>
+                                        <span class="text-muted-foreground">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                            8 accepted
+                                        </span>
+                                    </div>
+                                    <button class="text-primary hover:text-primary/80">
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: QuestionsView -->
+
+                    <!-- Coding Interface -->
+                    <!-- @COMPONENT: CodingInterface [main problem-solving interface] -->
+                    <div id="coding-view" class="hidden">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+                            <!-- Problem Description -->
+                            <div class="bg-card rounded-lg border border-border flex flex-col">
+                                <div class="p-6 border-b border-border">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h2 class="text-xl font-semibold text-foreground" data-bind="problem.title" data-mock="true">Two Sum Problem</h2>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="submission-status status-accepted" data-bind="problem.difficulty">
+                                                <i class="fas fa-circle"></i>
+                                                Easy
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-4 text-sm text-muted-foreground">
+                                        <span><i class="fas fa-clock mr-1"></i>Time: <span data-bind="problem.timeLimit" data-mock="true">2 hours</span></span>
+                                        <span><i class="fas fa-memory mr-1"></i>Memory: <span data-bind="problem.memoryLimit" data-mock="true">256 MB</span></span>
+                                    </div>
+                                </div>
+                                <div class="flex-1 p-6 overflow-y-auto">
+                                    <div class="prose prose-sm max-w-none">
+                                        <div class="space-y-4" data-bind="problem.description" data-mock="true">
+                                            <p class="text-foreground">
+                                                Given an array of integers <code class="bg-muted px-1 py-0.5 rounded text-sm">nums</code> and an integer <code class="bg-muted px-1 py-0.5 rounded text-sm">target</code>, return indices of the two numbers such that they add up to target.
+                                            </p>
+                                            <p class="text-foreground">
+                                                You may assume that each input would have exactly one solution, and you may not use the same element twice.
+                                            </p>
+                                            <p class="text-foreground">
+                                                You can return the answer in any order.
+                                            </p>
+                                            <div>
+                                                <h4 class="font-semibold text-foreground mb-2">Example 1:</h4>
+                                                <div class="bg-muted p-3 rounded-md font-mono text-sm">
+                                                    <div><strong>Input:</strong> nums = [2,7,11,15], target = 9</div>
+                                                    <div><strong>Output:</strong> [0,1]</div>
+                                                    <div><strong>Explanation:</strong> Because nums[0] + nums[1] == 9, we return [0, 1].</div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h4 class="font-semibold text-foreground mb-2">Constraints:</h4>
+                                                <ul class="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                                                    <li>2 ≤ nums.length ≤ 10⁴</li>
+                                                    <li>-10⁹ ≤ nums[i] ≤ 10⁹</li>
+                                                    <li>-10⁹ ≤ target ≤ 10⁹</li>
+                                                    <li>Only one valid answer exists.</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Code Editor and Submission -->
+                            <div class="bg-card rounded-lg border border-border flex flex-col">
+                                <div class="p-4 border-b border-border">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4">
+                                            <select class="px-3 py-1 border border-border rounded-md bg-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                                                <option data-mock="true">Python</option>
+                                                <option data-mock="true">Java</option>
+                                                <option data-mock="true">C++</option>
+                                                <option data-mock="true">JavaScript</option>
+                                            </select>
+                                            <span class="text-sm text-muted-foreground">
+                                                <i class="fas fa-clock mr-1"></i>
+                                                Time remaining: <span data-bind="timeRemaining" data-mock="true">1h 42m</span>
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <button class="px-3 py-1 text-sm border border-border rounded-md text-foreground hover:bg-accent transition-colors" data-event="click:runCode">
+                                                <i class="fas fa-play mr-1"></i>
+                                                Run
+                                            </button>
+                                            <button class="px-4 py-1 text-sm bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors" data-event="click:submitCode">
+                                                <i class="fas fa-paper-plane mr-1"></i>
+                                                Submit
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Code Editor -->
+                                <!-- @FUNCTIONALITY: This code editor should implement syntax highlighting and auto-completion using Monaco Editor -->
+                                <div class="flex-1 p-4">
+                                    <textarea class="code-editor w-full h-80 p-4 border border-border rounded-md bg-input text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring" 
+                                              placeholder="# Write your solution here
+def twoSum(nums, target):
+    # Your code here
+    pass" data-mock="true" data-implementation="Replace with Monaco Editor component"></textarea>
+                                </div>
+
+                                <!-- Test Results -->
+                                <div class="p-4 border-t border-border">
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="font-medium text-foreground">Test Results</h4>
+                                            <span class="text-sm text-muted-foreground" data-bind="testResults.summary" data-mock="true">3/5 passed</span>
+                                        </div>
+                                        <!-- @MAP: testResults.map(result => ( -->
+                                        <div class="flex items-center justify-between py-2 px-3 bg-muted/20 rounded-md" data-mock="true">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-check-circle text-green-600 mr-2" data-bind="result.status === 'passed' ? 'fa-check-circle text-green-600' : 'fa-times-circle text-red-600'"></i>
+                                                <span class="text-sm text-foreground" data-bind="result.name">Test Case 1</span>
+                                            </div>
+                                            <span class="text-sm text-muted-foreground" data-bind="result.time">2ms</span>
+                                        </div>
+                                        <!-- @END_MAP )) -->
+                                        <div class="flex items-center justify-between py-2 px-3 bg-muted/20 rounded-md" data-mock="true">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                                                <span class="text-sm text-foreground">Test Case 2</span>
+                                            </div>
+                                            <span class="text-sm text-muted-foreground">1ms</span>
+                                        </div>
+                                        <div class="flex items-center justify-between py-2 px-3 bg-muted/20 rounded-md" data-mock="true">
+                                            <div class="flex items-center">
+                                                <i class="fas fa-times-circle text-red-600 mr-2"></i>
+                                                <span class="text-sm text-foreground">Test Case 3</span>
+                                            </div>
+                                            <span class="text-sm text-destructive">Wrong Answer</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: CodingInterface -->
+
+                    <!-- Leaderboard View -->
+                    <!-- @COMPONENT: LeaderboardView [displays participant rankings] -->
+                    <div id="leaderboard-view" class="hidden space-y-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-2xl font-semibold text-foreground">Leaderboard</h2>
+                                <p class="text-muted-foreground">Competition rankings and performance</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <select class="px-3 py-2 border border-border rounded-md bg-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                                    <option data-mock="true">Algorithm Championship 2024</option>
+                                    <option data-mock="true">Data Structures Sprint</option>
+                                </select>
+                                <button class="px-3 py-2 border border-border rounded-md text-foreground hover:bg-accent transition-colors">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Leaderboard Table -->
+                        <div class="bg-card rounded-lg border border-border overflow-hidden">
+                            <div class="px-6 py-4 border-b border-border bg-muted/30">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-lg font-medium text-foreground">Rankings</h3>
+                                    <span class="text-sm text-muted-foreground">Last updated: <span data-bind="lastUpdated" data-mock="true">2 minutes ago</span></span>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-muted/20">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Rank</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Participant</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Score</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Solved</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Last Submission</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-border">
+                                        <!-- @MAP: leaderboard.map((participant, index) => ( -->
+                                        <tr class="hover:bg-muted/10" data-mock="true">
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center">
+                                                    <div class="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-white font-bold text-sm" data-bind="index === 0 ? 'trophy-icon' : index + 1">
+                                                        <i class="fas fa-trophy"></i>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center">
+                                                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold text-sm mr-3">
+                                                        <span data-bind="participant.name.charAt(0)">A</span>
+                                                    </div>
+                                                    <div>
+                                                        <p class="text-sm font-medium text-foreground" data-bind="participant.name">Alice Johnson</p>
+                                                        <p class="text-xs text-muted-foreground" data-bind="participant.email">alice@company.com</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 text-sm font-semibold text-foreground" data-bind="participant.score" data-mock="true">850</td>
+                                            <td class="px-6 py-4 text-sm text-foreground" data-bind="participant.solved + '/' + participant.total" data-mock="true">7/8</td>
+                                            <td class="px-6 py-4 text-sm text-muted-foreground" data-bind="participant.lastSubmission" data-mock="true">5 min ago</td>
+                                        </tr>
+                                        <!-- @END_MAP )) -->
+                                        <tr class="hover:bg-muted/10" data-mock="true">
+                                            <td class="px-6 py-4">
+                                                <div class="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                                    <i class="fas fa-medal"></i>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center">
+                                                    <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center text-accent-foreground font-semibold text-sm mr-3">
+                                                        <span>B</span>
+                                                    </div>
+                                                    <div>
+                                                        <p class="text-sm font-medium text-foreground">Bob Smith</p>
+                                                        <p class="text-xs text-muted-foreground">bob@company.com</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 text-sm font-semibold text-foreground">820</td>
+                                            <td class="px-6 py-4 text-sm text-foreground">6/8</td>
+                                            <td class="px-6 py-4 text-sm text-muted-foreground">12 min ago</td>
+                                        </tr>
+                                        <tr class="hover:bg-muted/10" data-mock="true">
+                                            <td class="px-6 py-4">
+                                                <div class="w-8 h-8 bg-orange-400 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                                    <i class="fas fa-medal"></i>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4">
+                                                <div class="flex items-center">
+                                                    <div class="w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-secondary-foreground font-semibold text-sm mr-3">
+                                                        <span>C</span>
+                                                    </div>
+                                                    <div>
+                                                        <p class="text-sm font-medium text-foreground">Carol Wilson</p>
+                                                        <p class="text-xs text-muted-foreground">carol@company.com</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 text-sm font-semibold text-foreground">785</td>
+                                            <td class="px-6 py-4 text-sm text-foreground">6/8</td>
+                                            <td class="px-6 py-4 text-sm text-muted-foreground">18 min ago</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: LeaderboardView -->
+
+                    <!-- Participant Events View -->
+                    <!-- @COMPONENT: ParticipantEventsView [shows events participant can join or is already in] -->
+                    <div id="my-events-view" class="hidden space-y-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-2xl font-semibold text-foreground">My Events</h2>
+                                <p class="text-muted-foreground">Competitions you're participating in</p>
+                            </div>
+                        </div>
+
+                        <!-- Active Events -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- @MAP: participantEvents.map(event => ( -->
+                            <div class="bg-card p-6 rounded-lg border border-border" data-mock="true">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex-1">
+                                        <h3 class="text-lg font-semibold text-foreground mb-2" data-bind="event.name">Algorithm Championship 2024</h3>
+                                        <p class="text-sm text-muted-foreground mb-3" data-bind="event.description">Advanced DSA problems for experienced developers</p>
+                                        <div class="flex items-center space-x-4 text-sm">
+                                            <span class="submission-status status-accepted" data-bind="event.status">
+                                                <i class="fas fa-circle"></i>
+                                                Active
+                                            </span>
+                                            <span class="text-muted-foreground" data-bind="event.timeRemaining">2h 30m left</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 mb-4">
+                                    <div class="text-center p-3 bg-muted/20 rounded-md">
+                                        <p class="text-lg font-bold text-foreground" data-bind="event.userProgress.solved" data-mock="true">6</p>
+                                        <p class="text-xs text-muted-foreground">Solved</p>
+                                    </div>
+                                    <div class="text-center p-3 bg-muted/20 rounded-md">
+                                        <p class="text-lg font-bold text-foreground" data-bind="event.userProgress.rank" data-mock="true">#3</p>
+                                        <p class="text-xs text-muted-foreground">Rank</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="enterEvent('${event.id}')" data-event="click:enterEvent"
+                                            class="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium">
+                                        <i class="fas fa-play mr-2"></i>
+                                        Continue
+                                    </button>
+                                    <button onclick="showLeaderboard('${event.id}')" data-event="click:showLeaderboard"
+                                            class="px-4 py-2 border border-border text-foreground rounded-md hover:bg-accent transition-colors text-sm">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                            <div class="bg-card p-6 rounded-lg border border-border" data-mock="true">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex-1">
+                                        <h3 class="text-lg font-semibold text-foreground mb-2">Data Structures Sprint</h3>
+                                        <p class="text-sm text-muted-foreground mb-3">Quick-fire DS problems for beginners</p>
+                                        <div class="flex items-center space-x-4 text-sm">
+                                            <span class="submission-status status-pending">
+                                                <i class="fas fa-circle"></i>
+                                                Scheduled
+                                            </span>
+                                            <span class="text-muted-foreground">Starts in 1 day</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 mb-4">
+                                    <div class="text-center p-3 bg-muted/20 rounded-md">
+                                        <p class="text-lg font-bold text-foreground">0</p>
+                                        <p class="text-xs text-muted-foreground">Solved</p>
+                                    </div>
+                                    <div class="text-center p-3 bg-muted/20 rounded-md">
+                                        <p class="text-lg font-bold text-foreground">-</p>
+                                        <p class="text-xs text-muted-foreground">Rank</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button disabled class="flex-1 px-4 py-2 bg-muted text-muted-foreground rounded-md cursor-not-allowed text-sm font-medium">
+                                        <i class="fas fa-clock mr-2"></i>
+                                        Scheduled
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: ParticipantEventsView -->
+
+                    <!-- Join Event View -->
+                    <!-- @COMPONENT: JoinEventView [for participants to join new events] -->
+                    <div id="join-event-view" class="hidden space-y-6">
+                        <div>
+                            <h2 class="text-2xl font-semibold text-foreground">Join Event</h2>
+                            <p class="text-muted-foreground">Enter an event code to join a competition</p>
+                        </div>
+
+                        <div class="max-w-md">
+                            <div class="bg-card p-6 rounded-lg border border-border">
+                                <h3 class="text-lg font-semibold text-foreground mb-4">Enter Event Code</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label for="event-code" class="block text-sm font-medium text-foreground mb-2">Event Code</label>
+                                        <input id="event-code" type="text" 
+                                               class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring font-mono"
+                                               placeholder="ABC123" data-mock="true">
+                                    </div>
+                                    <button type="submit" data-event="click:joinEvent"
+                                            class="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors font-medium">
+                                        <i class="fas fa-sign-in-alt mr-2"></i>
+                                        Join Event
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Available Public Events -->
+                        <div class="bg-card p-6 rounded-lg border border-border">
+                            <h3 class="text-lg font-semibold text-foreground mb-4">Available Events</h3>
+                            <div class="space-y-4">
+                                <!-- @MAP: availableEvents.map(event => ( -->
+                                <div class="flex items-center justify-between p-4 border border-border rounded-lg" data-mock="true">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mr-4">
+                                            <i class="fas fa-code text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-foreground" data-bind="event.name">Weekly Algorithm Practice</p>
+                                            <p class="text-sm text-muted-foreground" data-bind="event.description">Practice session for all skill levels</p>
+                                            <div class="flex items-center space-x-3 mt-1">
+                                                <span class="text-xs text-muted-foreground" data-bind="event.participantCount + ' participants'">45 participants</span>
+                                                <span class="text-xs text-muted-foreground" data-bind="event.duration">Duration: 3 hours</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button data-event="click:joinPublicEvent" 
+                                            class="px-4 py-2 border border-primary text-primary rounded-md hover:bg-primary hover:text-primary-foreground transition-colors text-sm font-medium">
+                                        Join
+                                    </button>
+                                </div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: JoinEventView -->
+                </main>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Dashboard -->
+
+        <!-- Modals -->
+        <!-- Create Event Modal -->
+        <!-- @COMPONENT: CreateEventModal [modal for creating new events] -->
+        <div id="create-event-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+            <div class="bg-card rounded-lg border border-border w-full max-w-md">
+                <div class="p-6 border-b border-border">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-foreground">Create Event</h3>
+                        <button onclick="closeModal('create-event-modal')" class="text-muted-foreground hover:text-foreground">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">Event Name</label>
+                        <input type="text" class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                               placeholder="Enter event name" data-mock="true">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">Description</label>
+                        <textarea class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" 
+                                  rows="3" placeholder="Describe your event" data-mock="true"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">Start Time</label>
+                            <input type="datetime-local" class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring" data-mock="true">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-2">End Time</label>
+                            <input type="datetime-local" class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring" data-mock="true">
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6 border-t border-border bg-muted/20">
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="closeModal('create-event-modal')" 
+                                class="px-4 py-2 border border-border text-foreground rounded-md hover:bg-accent transition-colors">
+                            Cancel
+                        </button>
+                        <button data-event="click:createEvent"
+                                class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                            Create Event
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: CreateEventModal -->
+
+        <!-- Generate Question Modal -->
+        <!-- @COMPONENT: GenerateQuestionModal [modal for AI question generation] -->
+        <div id="generate-question-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+            <div class="bg-card rounded-lg border border-border w-full max-w-lg">
+                <div class="p-6 border-b border-border">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-foreground">
+                            <i class="fas fa-robot text-primary mr-2"></i>
+                            Generate Question
+                        </h3>
+                        <button onclick="closeModal('generate-question-modal')" class="text-muted-foreground hover:text-foreground">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">Event</label>
+                        <select class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+                            <option data-mock="true">Algorithm Championship 2024</option>
+                            <option data-mock="true">Data Structures Sprint</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">Difficulty Level</label>
+                        <select class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+                            <option data-mock="true">Easy</option>
+                            <option data-mock="true">Medium</option>
+                            <option data-mock="true">Hard</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">Topic/Category</label>
+                        <select class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+                            <option data-mock="true">Arrays & Hashing</option>
+                            <option data-mock="true">Two Pointers</option>
+                            <option data-mock="true">Binary Search</option>
+                            <option data-mock="true">Sliding Window</option>
+                            <option data-mock="true">Stack</option>
+                            <option data-mock="true">Binary Tree</option>
+                            <option data-mock="true">Dynamic Programming</option>
+                            <option data-mock="true">Graph</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-2">Additional Requirements (Optional)</label>
+                        <textarea class="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" 
+                                  rows="3" placeholder="e.g., Focus on optimization, include edge cases..." data-mock="true"></textarea>
+                    </div>
+                </div>
+                <div class="p-6 border-t border-border bg-muted/20">
+                    <div class="flex justify-end space-x-3">
+                        <button onclick="closeModal('generate-question-modal')" 
+                                class="px-4 py-2 border border-border text-foreground rounded-md hover:bg-accent transition-colors">
+                            Cancel
+                        </button>
+                        <button data-event="click:generateQuestion" data-implementation="Should call AI API to generate question"
+                                class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                            <i class="fas fa-magic mr-2"></i>
+                            Generate
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: GenerateQuestionModal -->
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+    <script>
+        // TODO: Implement authentication, event management, question generation, and code submission logic
+        
+        // UI State Management
+        (function() {
+            let currentView = 'auth-page';
+            let userRole = 'organizer'; // This would come from authentication
+            let sidebarOpen = false;
+
+            // Show/hide authentication forms
+            window.showLogin = function() {
+                document.getElementById('login-form').classList.remove('hidden');
+                document.getElementById('signup-form').classList.add('hidden');
+            };
+
+            window.showSignup = function() {
+                document.getElementById('signup-form').classList.remove('hidden');
+                document.getElementById('login-form').classList.add('hidden');
+            };
+
+            // Mock login function
+            window.login = function() {
+                document.getElementById('auth-page').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                showView('dashboard');
+                
+                // Show appropriate navigation based on role
+                if (userRole === 'organizer') {
+                    document.getElementById('organizer-nav').classList.remove('hidden');
+                    document.getElementById('participant-nav').classList.add('hidden');
+                } else {
+                    document.getElementById('organizer-nav').classList.add('hidden');
+                    document.getElementById('participant-nav').classList.remove('hidden');
+                    showView('my-events');
+                }
+            };
+
+            // Mock logout function
+            window.logout = function() {
+                document.getElementById('dashboard').classList.add('hidden');
+                document.getElementById('auth-page').classList.remove('hidden');
+            };
+
+            // View navigation
+            window.showView = function(viewName) {
+                // Hide all views
+                const views = ['dashboard-view', 'events-view', 'questions-view', 'coding-view', 'leaderboard-view', 'my-events-view', 'join-event-view'];
+                views.forEach(view => {
+                    document.getElementById(view).classList.add('hidden');
+                });
+
+                // Show requested view
+                document.getElementById(viewName + '-view').classList.remove('hidden');
+                
+                // Update page title
+                const titles = {
+                    'dashboard': 'Dashboard',
+                    'events': 'Events',
+                    'questions': 'Questions',
+                    'coding': 'Solve Problem',
+                    'leaderboard': 'Leaderboard',
+                    'my-events': 'My Events',
+                    'join-event': 'Join Event'
+                };
+                
+                const subtitles = {
+                    'dashboard': 'Manage your coding competitions',
+                    'events': 'Create and manage events',
+                    'questions': 'AI-generated DSA problems',
+                    'coding': 'Solve coding challenges',
+                    'leaderboard': 'Competition rankings',
+                    'my-events': 'Your active competitions',
+                    'join-event': 'Find new competitions'
+                };
+
+                document.getElementById('page-title').textContent = titles[viewName] || 'Dashboard';
+                document.getElementById('page-subtitle').textContent = subtitles[viewName] || '';
+
+                // Update active nav item
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('bg-accent', 'text-accent-foreground');
+                });
+            };
+
+            // Sidebar toggle
+            window.toggleSidebar = function() {
+                const sidebar = document.querySelector('.sidebar');
+                const overlay = document.getElementById('sidebar-overlay');
+                
+                if (sidebar.classList.contains('sidebar-hidden')) {
+                    sidebar.classList.remove('sidebar-hidden');
+                    sidebar.classList.add('sidebar-active');
+                    overlay.classList.remove('hidden');
+                } else {
+                    sidebar.classList.add('sidebar-hidden');
+                    sidebar.classList.remove('sidebar-active');
+                    overlay.classList.add('hidden');
+                }
+            };
+
+            // Modal functions
+            window.showCreateEventModal = function() {
+                document.getElementById('create-event-modal').classList.remove('hidden');
+            };
+
+            window.showGenerateQuestionModal = function() {
+                document.getElementById('generate-question-modal').classList.remove('hidden');
+            };
+
+            window.closeModal = function(modalId) {
+                document.getElementById(modalId).classList.add('hidden');
+            };
+
+            // Mock functions for interactions
+            window.enterEvent = function(eventId) {
+                showView('coding');
+            };
+
+            window.showLeaderboard = function(eventId) {
+                showView('leaderboard');
+            };
+
+            // Initialize the app in login state
+            showLogin();
+            
+            // Demo: Auto-login after 3 seconds for demonstration
+            setTimeout(() => {
+                // Uncomment the next line to auto-demo the dashboard
+                // login();
+            }, 3000);
+        })();
+    </script>
+</body>
+</html>

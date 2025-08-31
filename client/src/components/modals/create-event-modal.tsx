@@ -18,6 +18,8 @@ interface CreateEventModalProps {
 export default function CreateEventModal({ isOpen, onClose }: CreateEventModalProps) {
   const { toast } = useToast();
 
+  console.log("CreateEventModal rendered, isOpen:", isOpen);
+
   const form = useForm<InsertEvent>({
     resolver: zodResolver(insertEventSchema),
     defaultValues: {

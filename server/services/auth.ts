@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { type Request, type Response, type NextFunction } from "express";
-import { storage } from "../storage";
+import { storage } from "../storage.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const SALT_ROUNDS = 10;
@@ -42,7 +42,7 @@ export async function authenticateToken(req: AuthRequest, res: Response, next: N
   try {
     const decoded = verifyToken(token);
     const user = await storage.getUser(decoded.id);
-    
+
     if (!user) {
       return res.status(401).json({ message: "Invalid token" });
     }
